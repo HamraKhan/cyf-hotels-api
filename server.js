@@ -12,24 +12,6 @@ const pool = new Pool({
   }
 });
 
-app.get("/hotels", function(req, res) {
-    const hotelNameQuery = req.query.name;
-    let query = `SELECT * FROM hotels ORDER BY name`;
-    let params = [];
-    if (hotelNameQuery) {
-        query = `SELECT * FROM hotels WHERE name LIKE $1 ORDER BY name`;
-        params.push(`%${hotelNameQuery}%`);
-    }
-
-    pool
-      .query(query, params)
-      .then((result) => res.json(result.rows))
-      .catch((error) => {
-        console.error(error);
-        res.status(500).json(error);
-      });
-});
-
 app.get("/bookings", function (req, res) {
   pool
     .query("SELECT * FROM bookings;")
@@ -48,6 +30,34 @@ app.get("/hotels", function (req, res) {
       console.error(error);
       res.status(500).json(error);
     });
+});
+
+app.get("/customers", function (req, res) {
+  pool
+    .query("SELECT * FROM customers;")
+    .then((result) => res.json(result.rows))
+    .catch((error) => {
+      console.error(error);
+      res.status(500).json(error);
+    });
+});
+
+app.get("/hotels", function(req, res) {
+    const hotelNameQuery = req.query.name;
+    let query = `SELECT * FROM hotels ORDER BY name`;
+    let params = [];
+    if (hotelNameQuery) {
+        query = `SELECT * FROM hotels WHERE name LIKE $1 ORDER BY name`;
+        params.push(`%${hotelNameQuery}%`);
+    }
+
+    pool
+      .query(query, params)
+      .then((result) => res.json(result.rows))
+      .catch((error) => {
+        console.error(error);
+        res.status(500).json(error);
+      });
 });
 
 app.get("/hotels/:hotelId", function (req, res) {
