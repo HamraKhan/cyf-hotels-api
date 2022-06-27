@@ -13,23 +13,21 @@ const pool = new Pool({
 });
 
 app.get("/hotels", function(req, res) {
-  res.send('endpoint works')
+    const hotelNameQuery = req.query.name;
+    let query = `SELECT * FROM hotels ORDER BY name`;
+    let params = [];
+    if (hotelNameQuery) {
+        query = `SELECT * FROM hotels WHERE name LIKE $1 ORDER BY name`;
+        params.push(`%${hotelNameQuery}%`);
+    }
 
-    // const hotelNameQuery = req.query.name;
-    // let query = `SELECT * FROM hotels ORDER BY name`;
-    // let params = [];
-    // if (hotelNameQuery) {
-    //     query = `SELECT * FROM hotels WHERE name LIKE $1 ORDER BY name`;
-    //     params.push(`%${hotelNameQuery}%`);
-    // }
-
-    // pool
-    //   .query(query, params)
-    //   .then((result) => res.json(result.rows))
-    //   .catch((error) => {
-    //     console.error(error);
-    //     res.status(500).json(error);
-    //   });
+    pool
+      .query(query, params)
+      .then((result) => res.json(result.rows))
+      .catch((error) => {
+        console.error(error);
+        res.status(500).json(error);
+      });
 });
 
 app.get("/bookings", function (req, res) {
@@ -97,40 +95,19 @@ app.post("/customers", function (req, res) {
             console.error(error);
             res.status(500).json(error);
         });
-
 });
 
 
 app.put("/customers/:customerId", (req, res) => {
-  console.log(req.body);
-  console.log(req.params);
   const customerId = req.params.customerId;
   const { email, address, city, postcode, country } = req.body;
   const customerDetails = {};
 
-  if (email) {
-    customerDetails.email = email;
-  }
-  
+  if (email) customerDetails.email = email;
   if (address) customerDetails.address = address;
   if (city) customerDetails.city = city;
   if (postcode) customerDetails.postcode = postcode;
   if (country) customerDetails.country = country;
-
-  console.log(customerDetails);
-
-  // const { query, variables } = Object.entries(customerDetails).reduce(
-  //   (acc, [key, value], index) => {
-  //     if (index === Object.keys(customerDetails).length - 1) {
-  //       acc.query += ` ${key} = $${index + 2}`;
-  //     } else {
-  //       acc.query += ` ${key} = $${index + 2},`;
-  //     }
-  //     acc.variables.push(value);
-  //     return acc;
-  //   },
-  //   { query: "UPDATE customers SET", variables: [] }
-  // );
 
   let queryString = 'UPDATE customers SET '
   for(let key in customerDetails){
@@ -139,13 +116,7 @@ app.put("/customers/:customerId", (req, res) => {
   queryString = queryString.slice(0, queryString.length - 1);
   queryString += ` WHERE customers.id = ${customerId};`
   console.log(queryString);
- 
-// UPDATE customers 
-// SET email = 'john@gmail.com', 
-// city = 'Norwich' 
-// WHERE customers.id = 1;
 
-console.log(query, variables)
   pool
     .query(queryString)
     .then(() => res.send(`Customer ${customerId} updated!`))
